@@ -80,7 +80,7 @@
     const tabColor = ci % 2 ? 'pink' : 'blue';
     return `
     <section class="chapter">
-      <div class="ftabs" aria-hidden="true"><span class="ftab">Chapter ${pad(ci + 1)}</span><span class="ftab ${tabColor}">${esc(g.kr)}</span>${brands.length ? `<span class="ftab ${ci % 2 ? 'blue' : 'pink'}">${brands.length} brands</span>` : ''}</div>
+      <div class="ftabs" aria-hidden="true"><span class="ftab">Chapter ${pad(ci + 1)}</span><span class="ftab ${tabColor}">${esc(g.kr)}</span>${brands.length > 1 ? `<span class="ftab ${ci % 2 ? 'blue' : 'pink'}">${brands.length} brands</span>` : ''}</div>
       <header class="ch-head reveal">
         <span class="ch-no">${pad(ci + 1)}</span>
         <span class="ch-name">${esc(g.name)}</span>

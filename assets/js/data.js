@@ -23,6 +23,7 @@ window.PROJECTS = [
     titleEn: 'Twennies — Ad Creative Ops',
     client: '트웨니스 (㈜큐피스트)',
     company: '트웨니스',
+    brand: '트웨니스',
     year: '2026',
     period: '2026.03 – 2026.07',
     role: '그로스마케터 · 소재 운영 총괄',
@@ -90,6 +91,7 @@ window.PROJECTS = [
     titleEn: 'Twennies — LTV & Budget Proposal',
     client: '트웨니스 (㈜큐피스트)',
     company: '트웨니스',
+    brand: '트웨니스',
     year: '2026',
     period: '2026.03 – 2026.07',
     role: '그로스마케터 · 데이터 분석',
@@ -1210,7 +1212,7 @@ window.PROJECT_ORDER = [
 window.MINOR = ['pilkin-detail-page', 'yb-talk-collab', 'yb-travelshow-2024', 'yb-sotong-award'];
 
 // 뷰스컴퍼니 안의 브랜드 순서
-window.BRAND_ORDER = ['어퓨', '필킨', 'VDL', '차앤박'];
+window.BRAND_ORDER = ['트웨니스', '어퓨', '필킨', 'VDL', '차앤박'];
 
 // 홈 상단 대표 프로젝트 (10초 안에 보여줄 3개)
 window.FEATURED = [
