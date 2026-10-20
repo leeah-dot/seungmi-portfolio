@@ -27,25 +27,18 @@
   let tabTone = 0;
   // 프로젝트 한 건 = 탭이 달린 서류 한 장
   const sheetTab = (p, i) => `<span class="sheet-tab ${tabTone++ % 2 ? 'blue' : 'pink'}">${fig(i)}<em>${esc(p.brand || p.client)}</em><b>${esc(p.year)}</b></span>`;
-  const caption = (p, i, big) => `
-    <div class="ed-cap">
-      <${big ? 'h4' : 'h5'} class="ed-title">${esc(p.title)}</${big ? 'h4' : 'h5'}>
-      <p class="ed-hl">${esc(p.headline)}</p>
-      <p class="ed-role">${esc(p.role)}</p>
-      ${big ? `<dl class="ed-why"><dt class="mono">Why</dt><dd>${esc(p.why || p.summary)}</dd></dl>` : `<p class="ed-imp">${esc(p.impact || '')}</p>`}
-      <span class="ed-cta mono">Read the case →</span>
-    </div>`;
-  const leadHTML = (p, i, flip) => `
-    <a class="sheet ed-lead ${flip ? 'flip' : ''}" href="project.html?p=${p.slug}" data-hover-video>
-      ${sheetTab(p, i)}
-      <div class="ed-media reveal">${coverHTML(p)}</div>
-      ${caption(p, i, true)}
-    </a>`;
+  // 모든 프로젝트를 같은 크기의 서류로 — 이미지 + 캡션
   const itemHTML = (p, i) => `
     <a class="sheet ed-item" href="project.html?p=${p.slug}" data-hover-video>
       ${sheetTab(p, i)}
       <div class="ed-media reveal">${coverHTML(p)}</div>
-      ${caption(p, i, false)}
+      <div class="ed-cap">
+        <h5 class="ed-title">${esc(p.title)}</h5>
+        <p class="ed-hl">${esc(p.headline)}</p>
+        <p class="ed-role">${esc(p.role)}</p>
+        <p class="ed-imp">${esc(p.impact || '')}</p>
+        <span class="ed-cta mono">Read the case →</span>
+      </div>
     </a>`;
   const minorHTML = (list) => list.length ? `
     <div class="sheet ed-minor">
@@ -57,20 +50,10 @@
         <span class="y mono">${esc(p.year)}</span>
       </a>`).join('')}
     </div>` : '';
-  let flipCount = 0;
   const block = (items) => {
     const main = items.filter(([p]) => !MINOR.has(p.slug));
     const minor = items.filter(([p]) => MINOR.has(p.slug));
-    let out = '';
-    if (main.length) {
-      const [first, ...rest] = main;
-      out += leadHTML(first[0], first[1], flipCount++ % 2 === 1);
-      for (let k = 0; k < rest.length; k += 2) {
-        const pair = rest.slice(k, k + 2);
-        out += `<div class="ed-pair ${pair.length === 1 ? 'solo' : ''} ${(k / 2) % 2 ? 'alt' : ''}">${pair.map(([p, i]) => itemHTML(p, i)).join('')}</div>`;
-      }
-    }
-    return out + minorHTML(minor);
+    return (main.length ? `<div class="ed-grid">${main.map(([p, i]) => itemHTML(p, i)).join('')}</div>` : '') + minorHTML(minor);
   };
   const chapterHTML = (g, n, ci) => {
     const items = P.map((p, i) => [p, i]).filter(([p]) => p.company === g.id);
