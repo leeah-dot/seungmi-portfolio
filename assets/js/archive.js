@@ -199,3 +199,166 @@
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
   });
 })();
+
+/* ---------- v2 디벨롭: 내비 · 사원증 · 타임라인 · 카운트업 · Contact ---------- */
+(function () {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const esc = window.UI.esc;
+
+  // 인트로 픽셀 손 커서 (도트로 그림)
+  const hand = document.querySelector('.pixel-hand');
+  if (hand) {
+    const rows = [
+      '....XX..........', '...XooX.........', '...XooX.........', '...XooX.........',
+      '...XooXXX.......', '...XooXooXXX....', '.XXXooXooXooXX..', 'XooXooooooooXoX.',
+      'XooXoooooooooooX', '.XoooooooooooooX', '..XooooooooooooX', '..XoooooooooooX.',
+      '...XooooooooooX.', '....XoooooooooX.', '.....XooooooooX.', '.....XXXXXXXXXX.',
+    ];
+    let out = '';
+    rows.forEach((r, y) => [...r].forEach((c, x) => {
+      if (c === 'X') out += `<rect x="${x}" y="${y}" width="1" height="1" fill="#121212"/>`;
+      if (c === 'o') out += `<rect x="${x}" y="${y}" width="1" height="1" fill="#fff"/>`;
+    }));
+    hand.setAttribute('viewBox', '0 0 16 16');
+    hand.innerHTML = out;
+  }
+
+  // 진행 바 · 스크롤 상태 · 현재 섹션 표시
+  const header = document.querySelector('.site-header');
+  const bar = document.querySelector('.progress span');
+  const onScroll = () => {
+    const max = document.documentElement.scrollHeight - innerHeight;
+    if (bar) bar.style.setProperty('--p', max > 0 ? Math.min(1, scrollY / max) : 0);
+    header && header.classList.toggle('scrolled', scrollY > 40);
+  };
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  const pill = document.querySelector('.nav-pill');
+  const ind = pill && pill.querySelector('.nav-ind');
+  const links = pill ? [...pill.querySelectorAll('a')] : [];
+  const moveInd = (a) => {
+    if (!ind) return;
+    if (!a) { ind.style.opacity = 0; return; }
+    ind.style.opacity = 1;
+    ind.style.left = a.offsetLeft + 'px';
+    ind.style.width = a.offsetWidth + 'px';
+  };
+  const ids = ['work', 'archive', 'about', 'contact'];
+  const secs = ids.map((id) => document.getElementById(id)).filter(Boolean);
+  const pickActive = () => {
+    let cur = null;
+    secs.forEach((s) => { if (s.getBoundingClientRect().top < innerHeight * 0.45) cur = s.id; });
+    moveInd(links.find((a) => a.getAttribute('href') === '#' + cur));
+  };
+  addEventListener('scroll', pickActive, { passive: true });
+  addEventListener('resize', pickActive);
+  pickActive();
+
+  // 모바일 메뉴
+  const mbtn = document.querySelector('.menu-btn');
+  const menu = document.getElementById('mobile-menu');
+  if (mbtn && menu) {
+    const open = (v) => {
+      menu.hidden = !v;
+      mbtn.setAttribute('aria-expanded', String(v));
+      document.documentElement.style.overflow = v ? 'hidden' : '';
+      if (v) menu.querySelector('a').focus(); else mbtn.focus();
+    };
+    mbtn.addEventListener('click', () => open(true));
+    menu.querySelector('.menu-close').addEventListener('click', () => open(false));
+    menu.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => open(false)));
+    addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) open(false); });
+  }
+
+  // 사원증: 포인터에 따라 진자처럼 흔들림 + 눌러서 뒤집기
+  const wrap = document.querySelector('.badge-wrap');
+  const badge = document.querySelector('.badge');
+  if (badge) {
+    badge.addEventListener('click', () => badge.setAttribute('aria-pressed', String(badge.getAttribute('aria-pressed') !== 'true')));
+  }
+  if (wrap && !reduce) {
+    let angle = 0, vel = 0, target = 0, last = null;
+    addEventListener('pointermove', (e) => {
+      const r = wrap.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) return;
+      const cx = r.left + r.width / 2;
+      target = Math.max(-1, Math.min(1, (e.clientX - cx) / 400)) * 9;
+      if (last !== null) vel += (e.clientX - last) * 0.012;
+      last = e.clientX;
+    }, { passive: true });
+    const tick = () => {
+      vel += (target - angle) * 0.035;
+      vel *= 0.9;
+      angle += vel;
+      wrap.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // 경력 타임라인: 학력 추가 + Next 카드 + 스크롤에 따라 선 그리기
+  const xp = document.querySelector('.xp');
+  if (xp) {
+    (window.PROFILE.education || []).forEach((ed) => {
+      xp.insertAdjacentHTML('beforeend', `<div class="xp-row"><div class="co">${esc(ed.t)}<span class="team">학력</span></div><div class="note"></div><div class="pd mono">${esc(ed.d)}</div></div>`);
+    });
+    xp.insertAdjacentHTML('afterbegin', '<span class="xp-fill" aria-hidden="true"></span>');
+    xp.insertAdjacentHTML('beforeend', '<div class="xp-next"><strong>Next — 함께할 <em>팀?</em></strong><a class="mono" href="#contact">Contact →</a></div>');
+    const rows = [...xp.querySelectorAll('.xp-row')];
+    const draw = () => {
+      const r = xp.getBoundingClientRect();
+      const p = Math.max(0, Math.min(1, (innerHeight * 0.7 - r.top) / r.height));
+      xp.style.setProperty('--tl', reduce ? 1 : p);
+      const lineY = r.top + r.height * (reduce ? 1 : p);
+      rows.forEach((row) => row.classList.toggle('on', row.getBoundingClientRect().top + 24 <= lineY));
+    };
+    addEventListener('scroll', draw, { passive: true });
+    addEventListener('resize', draw);
+    draw();
+  }
+
+  // 대표 숫자 카운트업 (보일 때 한 번, 1.4초)
+  const nums = document.querySelectorAll('.f-num');
+  const countUp = (el) => {
+    const raw = el.textContent;
+    const m = raw.match(/[\d.,]+/);
+    if (!m || reduce) return;
+    const str = m[0], val = parseFloat(str.replace(/,/g, '')), dec = (str.split('.')[1] || '').length;
+    const pre = raw.slice(0, m.index), post = raw.slice(m.index + str.length);
+    const t0 = performance.now();
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = pre + (val * e).toFixed(dec) + post;
+      if (k < 1) requestAnimationFrame(step); else el.textContent = raw;
+    };
+    requestAnimationFrame(step);
+  };
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { countUp(e.target); io.unobserve(e.target); } }), { threshold: 0.6 });
+    nums.forEach((n) => io.observe(n));
+  }
+
+  // Contact: 글자마다 통통 + 이메일 복사
+  document.querySelectorAll('.contact-title .bounce').forEach((w) => {
+    w.innerHTML = [...w.textContent].map((c) => `<span class="ch" aria-hidden="true">${esc(c)}</span>`).join('');
+  });
+  document.querySelectorAll('.contact-title .ch').forEach((c) => {
+    c.addEventListener('pointerdown', () => { c.classList.add('pop'); setTimeout(() => c.classList.remove('pop'), 450); });
+  });
+  const chip = document.querySelector('.copy-chip');
+  if (chip) {
+    chip.addEventListener('click', () => {
+      const text = chip.dataset.copy;
+      const done = () => { chip.textContent = '복사됨 ✓'; chip.classList.add('copied'); setTimeout(() => { chip.textContent = 'Copy'; chip.classList.remove('copied'); }, 1800); };
+      const fallback = () => {
+        const r = document.createRange();
+        r.selectNodeContents(document.querySelector('.contact-mail'));
+        const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        chip.textContent = '선택됨 — ⌘C로 복사';
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+      else fallback();
+    });
+  }
+})();
