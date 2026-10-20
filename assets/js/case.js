@@ -41,14 +41,14 @@
       if (g.yt) {
         // 유튜브 임베드 (start: 초 단위 시작 지점)
         const q = `rel=0${g.start ? `&start=${g.start}` : ''}`;
-        media = `<iframe src="https://www.youtube-nocookie.com/embed/${esc(g.yt)}?${q}" title="${esc(g.cap || p.title)}" loading="lazy" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
+        media = `<iframe src="https://www.youtube-nocookie.com/embed/${esc(g.yt)}?${q}" title="${esc(g.cap || p.title)}" loading="eager" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
       } else if (g.video) {
         // poster 이미지가 없는 영상은 첫 프레임을 미리보기로 사용
         media = g.poster === false
           ? `<video src="${vid(g.video)}#t=0.1" controls muted playsinline preload="metadata"></video>`
           : `<video src="${vid(g.video)}" poster="${img(g.video)}" controls muted playsinline preload="none"></video>`;
       } else {
-        media = `<img src="${img(g.img)}" alt="${esc(g.cap || p.title)}" loading="lazy" data-zoom>`;
+        media = `<img src="${img(g.img)}" alt="${esc(g.cap || p.title)}" loading="eager" data-zoom>`;
       }
       return `<figure class="${cls}"><div class="g-media${g.yt ? ' yt' : ''}">${media}</div>${g.cap ? `<figcaption class="mono">${esc(g.cap)}</figcaption>` : ''}</figure>`;
     })
@@ -58,7 +58,7 @@
   const phone = (m) => `<div class="phone"><div class="screen">${
     m.video
       ? `<video src="${vid(m.video)}" poster="${img(m.video)}" muted loop playsinline preload="metadata" data-autoplay></video>`
-      : `<img src="${img(m.img)}" alt="${esc((m.title || '').replace(/\n/g, ' '))}" loading="lazy">`
+      : `<img src="${img(m.img)}" alt="${esc((m.title || '').replace(/\n/g, ' '))}" loading="eager">`
   }</div></div>`;
   const showcase = p.showcase ? `
     <section class="showcase">

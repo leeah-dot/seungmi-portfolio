@@ -17,7 +17,7 @@
   // 커버 렌더링 — type: img | trio | duo | text
   function coverHTML(p, { eager = false } = {}) {
     const c = p.cover;
-    const loading = eager ? 'eager' : 'lazy';
+    const loading = 'eager';
     const alt = esc(p.title);
     if (c.type === 'text') {
       return `<div class="cover text" style="background:${c.bg};color:${c.fg}"><span>${esc(c.text)}</span></div>`;
