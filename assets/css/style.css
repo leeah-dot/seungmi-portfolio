@@ -784,3 +784,22 @@ html.intro-lock, html.intro-lock body { overflow: hidden; }
   .ed-item.sheet { padding: 8px; margin-top: 34px; }
   .ed-item .ed-cap { padding: 14px 8px 8px; }
 }
+
+/* 한 줄에 나란히 놓는 1개짜리 브랜드 (VDL · 차앤박) */
+.brand-pair { margin-top: clamp(56px, 7vw, 112px); }
+.brand-pair .brand-head { margin: 0 0 clamp(4px, 1vw, 8px); }
+.brand-cell { display: flex; flex-direction: column; min-width: 0; }
+.brand-cell .ed-item { flex: 1; }
+/* 프로젝트가 하나뿐인 칸 — 전체 폭으로 크게 (해커스 · 대외활동 등) */
+.ed-grid.solo { grid-template-columns: 1fr; }
+.ed-grid.solo .ed-item { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 0 clamp(20px, 3vw, 48px); align-items: stretch; }
+.ed-grid.solo .ed-media { aspect-ratio: 16 / 10; }
+.ed-grid.solo .ed-cap { padding: clamp(18px, 2.4vw, 36px) clamp(8px, 1vw, 16px) 10px 0; justify-content: flex-end; }
+.ed-grid.solo .ed-title { font-size: clamp(24px, 2.4vw, 38px); }
+.ed-grid.solo .ed-imp { font-size: 16px; }
+@media (max-width: 760px) {
+  .ed-grid.solo .ed-item { display: flex; }
+  .ed-grid.solo .ed-media { aspect-ratio: 4 / 3; }
+  .ed-grid.solo .ed-cap { padding: 14px 8px 8px; }
+  .brand-pair { gap: 56px; }
+}

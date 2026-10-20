@@ -53,18 +53,30 @@
   const block = (items) => {
     const main = items.filter(([p]) => !MINOR.has(p.slug));
     const minor = items.filter(([p]) => MINOR.has(p.slug));
-    return (main.length ? `<div class="ed-grid">${main.map(([p, i]) => itemHTML(p, i)).join('')}</div>` : '') + minorHTML(minor);
+    return (main.length ? `<div class="ed-grid${main.length === 1 ? ' solo' : ''}">${main.map(([p, i]) => itemHTML(p, i)).join('')}</div>` : '') + minorHTML(minor);
   };
   const chapterHTML = (g, n, ci) => {
     const items = P.map((p, i) => [p, i]).filter(([p]) => p.company === g.id);
     if (!items.length) return '';
     const brands = window.BRAND_ORDER.filter((b) => items.some(([p]) => p.brand === b));
-    const body = brands.length
-      ? brands.map((b) => {
-          const its = items.filter(([p]) => p.brand === b);
-          return `<div class="brand-head"><span>${esc(b)}</span><span class="mono">${pad(its.length)}</span></div>` + block(its);
-        }).join('')
-      : block(items);
+    const brandHead = (b, n) => `<div class="brand-head"><span>${esc(b)}</span><span class="mono">${pad(n)}</span></div>`;
+    let body = '';
+    if (brands.length) {
+      // 프로젝트가 1개뿐인 브랜드끼리는 한 줄에 나란히
+      for (let k = 0; k < brands.length; k++) {
+        const its = items.filter(([p]) => p.brand === brands[k]);
+        const next = brands[k + 1] && items.filter(([p]) => p.brand === brands[k + 1]);
+        const single = (x) => x && x.length === 1 && !MINOR.has(x[0][0].slug);
+        if (single(its) && single(next)) {
+          body += `<div class="ed-grid brand-pair">${[[brands[k], its], [brands[k + 1], next]].map(([b, x]) => `<div class="brand-cell">${brandHead(b, 1)}${itemHTML(x[0][0], x[0][1])}</div>`).join('')}</div>`;
+          k++;
+        } else {
+          body += brandHead(brands[k], its.length) + block(its);
+        }
+      }
+    } else {
+      body = block(items);
+    }
     const tabColor = ci % 2 ? 'pink' : 'blue';
     return `
     <section class="chapter">
