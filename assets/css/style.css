@@ -297,7 +297,7 @@ a:hover .ed-title { text-decoration: underline; text-decoration-thickness: 1px; 
 .contact-mail {
   display: inline-block; margin: 24px 0 0;
   font-family: var(--display); font-weight: 500; letter-spacing: -0.05em; line-height: 0.95;
-  font-size: clamp(34px, 8.4vw, 150px);
+  font-size: clamp(26px, 4.2vw, 64px);
   transition: color .25s; word-break: break-all;
 }
 .contact-mail:hover { color: var(--accent); }
@@ -470,7 +470,7 @@ a:hover .ed-title { text-decoration: underline; text-decoration-thickness: 1px; 
   .xp-row { grid-template-columns: 1fr; gap: 4px; }
   .xp-row .pd { text-align: left; order: -1; }
   .facts { grid-template-columns: 1fr; }
-  .contact-mail { font-size: clamp(30px, 9.6vw, 48px); }
+  .contact-mail { font-size: clamp(22px, 7vw, 30px); }
   .footer-line { flex-direction: column; }
   .footer-line a { padding: 8px 0; }
   .case-top a { padding: 10px 0; display: inline-block; }
