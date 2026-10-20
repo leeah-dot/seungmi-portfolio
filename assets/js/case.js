@@ -117,6 +117,12 @@
       </div>
     </section>
 
+    ${p.why ? `
+    <section class="whybox section">
+      <div class="wb why"><span class="wb-tab">Why</span><p>${txt(p.why)}</p></div>
+      <div class="wb so"><span class="wb-tab">So what</span><p>${txt(p.impact)}</p></div>
+    </section>` : ''}
+
     ${section('01', 'Background', prose(p.background))}
     ${section('02', 'Problem', list(p.problem))}
     ${section('03', 'My Role', list(p.myRole))}

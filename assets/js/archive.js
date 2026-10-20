@@ -15,6 +15,7 @@
         <div class="f-num">${esc(f.n)}</div>
         <div class="f-label">${esc(f.l)}</div>
         <h3 class="f-title">${esc(p.title)}</h3>
+        <p class="f-why">${esc(p.impact || '')}</p>
         <span class="f-cta mono">View case →</span>
       </div>
     </a>`;
@@ -22,28 +23,33 @@
 
   /* ---------- All Projects: 회사(챕터) → 브랜드, 중요도에 따라 리듬 있게 ---------- */
   const MINOR = new Set(window.MINOR || []);
-  const fig = (i) => `Fig. ${pad(i + 1)}`;
+  const fig = (i) => `No. ${pad(i + 1)}`;
+  let tabTone = 0;
+  // 프로젝트 한 건 = 탭이 달린 서류 한 장
+  const sheetTab = (p, i) => `<span class="sheet-tab ${tabTone++ % 2 ? 'blue' : 'pink'}">${fig(i)}<em>${esc(p.brand || p.client)}</em><b>${esc(p.year)}</b></span>`;
   const caption = (p, i, big) => `
     <div class="ed-cap">
-      <span class="mono muted">${fig(i)} — ${esc(p.year)}</span>
       <${big ? 'h4' : 'h5'} class="ed-title">${esc(p.title)}</${big ? 'h4' : 'h5'}>
       <p class="ed-hl">${esc(p.headline)}</p>
       <p class="ed-role">${esc(p.role)}</p>
-      ${big ? `<p class="ed-sum">${esc(p.summary)}</p><span class="ed-cta mono">Read the case →</span>` : ''}
+      ${big ? `<dl class="ed-why"><dt class="mono">Why</dt><dd>${esc(p.why || p.summary)}</dd></dl>` : `<p class="ed-imp">${esc(p.impact || '')}</p>`}
+      <span class="ed-cta mono">Read the case →</span>
     </div>`;
   const leadHTML = (p, i, flip) => `
-    <a class="ed-lead ${flip ? 'flip' : ''}" href="project.html?p=${p.slug}" data-hover-video>
+    <a class="sheet ed-lead ${flip ? 'flip' : ''}" href="project.html?p=${p.slug}" data-hover-video>
+      ${sheetTab(p, i)}
       <div class="ed-media reveal">${coverHTML(p)}</div>
       ${caption(p, i, true)}
     </a>`;
   const itemHTML = (p, i) => `
-    <a class="ed-item" href="project.html?p=${p.slug}" data-hover-video>
+    <a class="sheet ed-item" href="project.html?p=${p.slug}" data-hover-video>
+      ${sheetTab(p, i)}
       <div class="ed-media reveal">${coverHTML(p)}</div>
       ${caption(p, i, false)}
     </a>`;
   const minorHTML = (list) => list.length ? `
-    <div class="ed-minor">
-      <span class="mono muted">Also in this chapter</span>
+    <div class="sheet ed-minor">
+      <span class="sheet-tab plain">Also in this chapter<b>${pad(list.length)}</b></span>
       ${list.map(([p, i]) => `
       <a class="row" href="project.html?p=${p.slug}" data-i="${i}">
         <span class="t">${esc(p.title)}</span>
@@ -76,10 +82,10 @@
           return `<div class="brand-head"><span>${esc(b)}</span><span class="mono">${pad(its.length)}</span></div>` + block(its);
         }).join('')
       : block(items);
-    const tabColor = ['blue', 'pink', 'green'][ci % 3];
+    const tabColor = ci % 2 ? 'pink' : 'blue';
     return `
     <section class="chapter">
-      <div class="ftabs" aria-hidden="true"><span class="ftab">Chapter ${pad(ci + 1)}</span><span class="ftab ${tabColor}">${esc(g.kr)}</span>${brands.length ? `<span class="ftab ${['pink', 'green', 'blue'][ci % 3]}">${brands.length} brands</span>` : ''}</div>
+      <div class="ftabs" aria-hidden="true"><span class="ftab">Chapter ${pad(ci + 1)}</span><span class="ftab ${tabColor}">${esc(g.kr)}</span>${brands.length ? `<span class="ftab ${ci % 2 ? 'blue' : 'pink'}">${brands.length} brands</span>` : ''}</div>
       <header class="ch-head reveal">
         <span class="ch-no">${pad(ci + 1)}</span>
         <span class="ch-name">${esc(g.name)}</span>
