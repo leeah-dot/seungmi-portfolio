@@ -1,0 +1,200 @@
+(function () {
+  const { esc, txt, pad, img, coverHTML, bindHoverVideos, reveal } = window.UI;
+  const P = window.PROJECTS;
+  const bySlug = Object.fromEntries(P.map((p) => [p.slug, p]));
+  document.querySelectorAll('[data-count]').forEach((el) => (el.textContent = pad(P.length)));
+
+  /* ---------- Selected Work: 대표 프로젝트 3개, 크게 ---------- */
+  document.querySelector('.feature-list').innerHTML = window.FEATURED.map((f, k) => {
+    const p = bySlug[f.slug];
+    return `
+    <a class="feature ${k % 2 ? 'flip' : ''}" href="project.html?p=${p.slug}" data-hover-video>
+      <div class="f-media reveal">${coverHTML(p, { eager: k === 0 })}</div>
+      <div class="f-text reveal">
+        <span class="mono muted">${pad(k + 1)} — ${esc(p.brand || p.company)} · ${esc(p.year)}</span>
+        <div class="f-num">${esc(f.n)}</div>
+        <div class="f-label">${esc(f.l)}</div>
+        <h3 class="f-title">${esc(p.title)}</h3>
+        <span class="f-cta mono">View case →</span>
+      </div>
+    </a>`;
+  }).join('');
+
+  /* ---------- All Projects: 회사(챕터) → 브랜드, 중요도에 따라 리듬 있게 ---------- */
+  const MINOR = new Set(window.MINOR || []);
+  const fig = (i) => `Fig. ${pad(i + 1)}`;
+  const caption = (p, i, big) => `
+    <div class="ed-cap">
+      <span class="mono muted">${fig(i)} — ${esc(p.year)}</span>
+      <${big ? 'h4' : 'h5'} class="ed-title">${esc(p.title)}</${big ? 'h4' : 'h5'}>
+      <p class="ed-hl">${esc(p.headline)}</p>
+      <p class="ed-role">${esc(p.role)}</p>
+      ${big ? `<p class="ed-sum">${esc(p.summary)}</p><span class="ed-cta mono">Read the case →</span>` : ''}
+    </div>`;
+  const leadHTML = (p, i, flip) => `
+    <a class="ed-lead ${flip ? 'flip' : ''}" href="project.html?p=${p.slug}" data-hover-video>
+      <div class="ed-media reveal">${coverHTML(p)}</div>
+      ${caption(p, i, true)}
+    </a>`;
+  const itemHTML = (p, i) => `
+    <a class="ed-item" href="project.html?p=${p.slug}" data-hover-video>
+      <div class="ed-media reveal">${coverHTML(p)}</div>
+      ${caption(p, i, false)}
+    </a>`;
+  const minorHTML = (list) => list.length ? `
+    <div class="ed-minor">
+      <span class="mono muted">Also in this chapter</span>
+      ${list.map(([p, i]) => `
+      <a class="row" href="project.html?p=${p.slug}" data-i="${i}">
+        <span class="t">${esc(p.title)}</span>
+        <span class="muted">${esc(p.headline)}</span>
+        <span class="y mono">${esc(p.year)}</span>
+      </a>`).join('')}
+    </div>` : '';
+  let flipCount = 0;
+  const block = (items) => {
+    const main = items.filter(([p]) => !MINOR.has(p.slug));
+    const minor = items.filter(([p]) => MINOR.has(p.slug));
+    let out = '';
+    if (main.length) {
+      const [first, ...rest] = main;
+      out += leadHTML(first[0], first[1], flipCount++ % 2 === 1);
+      for (let k = 0; k < rest.length; k += 2) {
+        const pair = rest.slice(k, k + 2);
+        out += `<div class="ed-pair ${pair.length === 1 ? 'solo' : ''} ${(k / 2) % 2 ? 'alt' : ''}">${pair.map(([p, i]) => itemHTML(p, i)).join('')}</div>`;
+      }
+    }
+    return out + minorHTML(minor);
+  };
+  const chapterHTML = (g, n, ci) => {
+    const items = P.map((p, i) => [p, i]).filter(([p]) => p.company === g.id);
+    if (!items.length) return '';
+    const brands = window.BRAND_ORDER.filter((b) => items.some(([p]) => p.brand === b));
+    const body = brands.length
+      ? brands.map((b) => {
+          const its = items.filter(([p]) => p.brand === b);
+          return `<div class="brand-head"><span>${esc(b)}</span><span class="mono">${pad(its.length)}</span></div>` + block(its);
+        }).join('')
+      : block(items);
+    const tabColor = ['blue', 'pink', 'green'][ci % 3];
+    return `
+    <section class="chapter">
+      <div class="ftabs" aria-hidden="true"><span class="ftab">Chapter ${pad(ci + 1)}</span><span class="ftab ${tabColor}">${esc(g.kr)}</span>${brands.length ? `<span class="ftab ${['pink', 'green', 'blue'][ci % 3]}">${brands.length} brands</span>` : ''}</div>
+      <header class="ch-head reveal">
+        <span class="ch-no">${pad(ci + 1)}</span>
+        <span class="ch-name">${esc(g.name)}</span>
+        <span class="ch-meta"><span>${esc(g.kr)}</span><span class="mono">${esc(g.role)}</span><span class="mono">${esc(g.period)}</span></span>
+      </header>
+      ${body}
+    </section>`;
+  };
+  const grid = document.querySelector('.grid');
+  grid.innerHTML = window.COMPANY_GROUPS.map((g, ci) => chapterHTML(g, 0, ci)).join('');
+
+  // 리스트 보기: 회사 → 브랜드 순 전체 목록
+  const rowHTML = (p, i) => `
+    <a class="row" href="project.html?p=${p.slug}" data-i="${i}">
+      <span class="t">${esc(p.title)}</span>
+      <span class="muted">${esc(p.role)}</span>
+      <span class="y mono">${esc(p.year)}</span>
+    </a>`;
+  const index = document.querySelector('.index-body');
+  index.innerHTML = window.COMPANY_GROUPS.map((g) => {
+    const items = P.map((p, i) => [p, i]).filter(([p]) => p.company === g.id);
+    if (!items.length) return '';
+    const brands = window.BRAND_ORDER.filter((b) => items.some(([p]) => p.brand === b));
+    const body = brands.length
+      ? brands.map((b) => `<div class="brand-head"><span>${esc(b)}</span></div>` + items.filter(([p]) => p.brand === b).map(([p, i]) => rowHTML(p, i)).join('')).join('')
+      : items.map(([p, i]) => rowHTML(p, i)).join('');
+    return `<div class="group-head"><span class="g-name">${esc(g.name)}</span><span class="g-meta"><span>${esc(g.kr)}</span><span class="mono">${esc(g.period)}</span></span></div>` + body;
+  }).join('');
+
+  // 브랜드 이름이 흐르는 띠
+  const ticker = document.querySelector('.ticker-track');
+  if (ticker) {
+    const words = ['A’pieu', 'Pilkin', 'VDL', 'CNP', 'Yellow Balloon', 'Twennies', 'Hackers Law School', 'Lotte Duty Free'];
+    const line = words.map((w) => `<span>${esc(w)}</span><i>✳︎</i>`).join('');
+    ticker.innerHTML = line + line;
+  }
+
+  // 리스트 뷰: 커서를 따라다니는 미리보기
+  const peek = document.querySelector('.peek');
+  if (matchMedia('(hover: hover)').matches) {
+    document.addEventListener('mousemove', (e) => {
+      peek.style.left = e.clientX + 170 + 'px';
+      peek.style.top = e.clientY + 'px';
+    });
+    document.querySelectorAll('.archive .row').forEach((row) => {
+      row.addEventListener('mouseenter', () => {
+        peek.innerHTML = coverHTML(P[+row.dataset.i], { eager: true });
+        peek.classList.add('on');
+      });
+      row.addEventListener('mouseleave', () => peek.classList.remove('on'));
+    });
+  }
+
+  /* ---------- Grid / List ---------- */
+  const archive = document.querySelector('.archive');
+  const toggle = document.querySelector('.view-toggle');
+  function setView(v) {
+    archive.dataset.view = v;
+    toggle.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === v)));
+    try { localStorage.setItem('archive-view', v); } catch (e) {}
+  }
+  toggle.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (b) setView(b.dataset.view);
+  });
+  let savedView = 'grid';
+  try { savedView = localStorage.getItem('archive-view') || 'grid'; } catch (e) {}
+  setView(savedView === 'index' ? 'index' : 'grid');
+
+  /* ---------- About ---------- */
+  const pr = window.PROFILE;
+  document.querySelector('.xp').innerHTML = pr.experience.map((x) => `
+    <div class="xp-row">
+      <div class="co">${esc(x.co)}<span class="team">${esc(x.team)}</span></div>
+      <div class="note">${esc(x.note)}</div>
+      <div class="pd mono">${txt(x.period)}</div>
+    </div>`).join('');
+  const li = (arr) => arr.map((a) => `<li><span>${esc(a.t)}</span><span>${esc(a.d)}</span></li>`).join('');
+  document.querySelector('[data-edu]').innerHTML = li(pr.education) + li(pr.certs);
+  document.querySelector('[data-act]').innerHTML = li(pr.activities);
+
+  /* ---------- Hero 등장: 인트로가 없거나 끝난 뒤 ---------- */
+  const hero = document.querySelector('.hero');
+  const playHero = () => hero.classList.add('play');
+  const intro = document.querySelector('.intro');
+  if (!intro || intro.classList.contains('gone')) requestAnimationFrame(playHero);
+  else document.addEventListener('intro:leave', () => setTimeout(playHero, 450), { once: true });
+
+  bindHoverVideos(document);
+  reveal();
+})();
+
+/* ---------- Intro: 폴더 — 클릭하면 표지가 열리고 문서가 꺼내짐 ---------- */
+(function () {
+  const intro = document.querySelector('.intro');
+  if (!intro || intro.classList.contains('gone')) return;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  requestAnimationFrame(() => intro.classList.add('play'));
+  intro.focus({ preventScroll: true });
+
+  const open = () => {
+    if (intro.classList.contains('opening')) return;
+    try { sessionStorage.setItem('intro-seen', '1'); } catch (e) {}
+    intro.classList.add('opening');
+    const t = reduce ? 0 : 1500;
+    setTimeout(() => {
+      document.documentElement.classList.remove('intro-lock');
+      scrollTo(0, 0);
+      intro.classList.add('leaving');
+      document.dispatchEvent(new Event('intro:leave'));
+      setTimeout(() => intro.classList.add('gone'), reduce ? 0 : 1100);
+    }, t);
+  };
+  intro.addEventListener('click', open);
+  intro.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+  });
+})();
